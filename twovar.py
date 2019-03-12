@@ -14,7 +14,7 @@ I0 = 0.3255
 stdnoise = 0.02
 mu0 = 30
 dt = 0.1*10**-3
-cprime = 0
+cprime = 52
 
 def H(xi):
 	return (a*xi-b)/(1-np.exp(-d*(a*xi-b)))
