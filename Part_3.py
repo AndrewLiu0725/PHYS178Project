@@ -9,8 +9,9 @@
 '''
 import matplotlib.pyplot as plt
 import numpy as np
+from sympy.solvers import solve
 from scipy.optimize import fsolve 
-from twovar import *
+
 #=================================
 #			Constants
 #=================================
@@ -27,10 +28,11 @@ I0 = 0.3255
 stdnoise = 0.02
 mu0 = 30
 dt = 0.1*10**-3
-cprime = 0
+
 #=================================
 # 			Phase Plane
 #=================================
+'''
 S1, S2 = experiment()
 plt.plot(S2,S1)
 plt.xlabel('S2')
@@ -38,7 +40,7 @@ plt.ylabel('S1')
 plt.title('Phase Plane')
 plt.show()
 
-
+'''
 # Plotting Nuclines for phase plane analysis
 # dS1/dt == 0
 # dS2/dt == 0
@@ -46,30 +48,57 @@ plt.show()
 
 # Not an efficient method will try solving simultaneous equations
 # and using sympy to solve
+def nullclines(cprime):
 
-def S_one(S1,S2):
-	# I_noise_1 How to implement in this code? Suggested Noiseless version
-	I1 = Jext*mu0*(1+cprime/100)
-	x1 = J11*S1 - J12*S2 + I0 + I1 
-	H1 = (a*x1 - b)/(1-np.exp(-d*(a*x1 - b)))
-	return -(S1/taus) + (1-S1)*gamma*H1
+	def gate(S):
+		# Input Currents 
+		I = [Jext*mu0*(1+(cprime/100)), 
+			 Jext*mu0*(1-(cprime/100)),0]
+		# x variable
+		x = [J11*S[0] - J12*S[1] + I0 + I[0],
+			 J22*S[1] - J21*S[0] + I0 + I[1]]
 
-def S_two(S2,S1):
-	I2 = Jext*mu0*(1-cprime/100)
-	x2 = J22 * S2 - J21*S1 + I0 + I2
-	H2 = (a*x2 - b)/(1-np.exp(-d*(a*x2 - b)))
-	return -(S2/taus) + (1-S2)*gamma*H2 	
+		# H values	 
+		H = [(a*x[i] - b)/(1 - np.exp(-d*(a*x[i] - b))) for i in range(2)] 
 
-S1_S2 = []
-itera = np.arange(0,1,0.01)
-for i in itera:
-	S1_S2+=[np.roots(S_one,1/i,args=(i))[0]]	
+		# dS1/dt and dS2/dt
+		expr = [-(S[i]/taus) + (1-S[i])*gamma*H[i] for i in range(2)]
+		return expr
 
-S2_S1 = []
-for i in itera:
-	S2_S1 += [fsolve(S_two,1/i,args=(i))[0]]
 
-plt.plot(itera,S1_S2,itera,S2_S1)		 
+	# Brute Force approach
+
+	iterr = np.arange(0,1,0.001)
+	ds1 = []
+	ds2 = []
+
+	for i in iterr:
+	
+		for j in iterr:
+			x,y = gate([i,j])
+		
+			if 0.01 > x > -0.01:
+				ds1 += [[i,j]]
+			if 0.01 > y > -0.01:
+				ds2 += [[i,j]]
+
+		
+	# Stack the results for easy plotting		
+	ds1=np.vstack(ds1)
+	ds2=np.vstack(ds2)
+
+	plt.scatter(ds1[:,0],ds1[:,1],s=1)
+	plt.scatter(ds2[:,0],ds2[:,1],s=1)
+	plt.legend(['dS1/dt=0','dS2/dt=0'])
+	plt.title('Nullclines Cprime: {}'.format(cprime))
+	plt.show()
+
+
+nullclines(100)
+
+
+
+	 
 
 
 
