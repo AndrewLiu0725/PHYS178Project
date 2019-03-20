@@ -52,6 +52,8 @@ def nullclines(cprime):
 
 	def gate(S):
 		# Input Currents 
+		# Zero on the end is for easy moving to zero input
+		# I[2]
 		I = [Jext*mu0*(1+(cprime/100)), 
 			 Jext*mu0*(1-(cprime/100)),0]
 		# x variable
@@ -65,12 +67,12 @@ def nullclines(cprime):
 		expr = [-(S[i]/taus) + (1-S[i])*gamma*H[i] for i in range(2)]
 		return expr
 
-
 	# Brute Force approach
 
 	iterr = np.arange(0,1,0.001)
 	ds1 = []
 	ds2 = []
+	fix_points = []
 
 	for i in iterr:
 	
@@ -81,20 +83,26 @@ def nullclines(cprime):
 				ds1 += [[i,j]]
 			if 0.01 > y > -0.01:
 				ds2 += [[i,j]]
-
+			if 0.01 > x > -0.01 and 0.01 > y > -0.01:
+				fix_points += [[i,j]]
+	
+	# Stack the results for easy plotting	
 		
-	# Stack the results for easy plotting		
 	ds1=np.vstack(ds1)
 	ds2=np.vstack(ds2)
+	fix_points=np.vstack(fix_points)
 
 	plt.scatter(ds1[:,0],ds1[:,1],s=1)
 	plt.scatter(ds2[:,0],ds2[:,1],s=1)
-	plt.legend(['dS1/dt=0','dS2/dt=0'])
-	plt.title('Nullclines Cprime: {}'.format(cprime))
+	plt.scatter(fix_points[:,0],fix_points[:,1])
+	plt.xlabel('S2')
+	plt.ylabel('S1')
+	plt.legend(['dS2/dt=0','dS1/dt=0','Fixed Points'])
+	plt.title('Nullclines cprime: {}'.format(cprime))
 	plt.show()
 
 
-nullclines(100)
+nullclines(51.2)
 
 
 
